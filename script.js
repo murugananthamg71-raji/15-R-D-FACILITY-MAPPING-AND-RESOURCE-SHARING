@@ -162,6 +162,13 @@ function initializeDirectoryFilters(kind) {
   const render = () => { const filtered = getResources().filter((item) => item.type === (kind === 'facility' ? 'Facility' : 'Equipment')).filter((item) => (!search.value || Object.values(item).join(' ').toLowerCase().includes(search.value.toLowerCase())) && (department.value === 'all' || item.department === department.value) && (availability.value === 'all' || item.availability === availability.value) && (!category || category.value === 'all' || item.category === category.value)); list.innerHTML = filtered.length ? filtered.map(resourceCard).join('') : '<div class="empty-state">No matching resources found.</div>'; list.querySelectorAll('[data-resource-id]').forEach((button) => button.addEventListener('click', () => openResourceModal(button.dataset.resourceId))); };
   [search, department, availability, category].filter(Boolean).forEach((control) => control.addEventListener('input', render)); render();
 }
+function initializeExpertiseDirectory() {
+  const list = document.getElementById('expert-list');
+  const categories = document.getElementById('expertise-categories');
+  if (!list || !categories) return;
+  categories.innerHTML = expertiseCategories.map((category) => `<a class="expertise-item" href="#expert-list"><span>${escapeHtml(category)}</span><span aria-hidden="true">&#8594;</span></a>`).join('');
+  list.innerHTML = expertise.map((expert) => `<article class="expert-card"><span class="eyebrow">${escapeHtml(expert.department)}</span><h3>${escapeHtml(expert.name)}</h3><p>${escapeHtml(expert.designation)}</p><p><strong>Research areas:</strong> ${escapeHtml(expert.areas)}</p><p><strong>Contact:</strong> ${escapeHtml(expert.contact)}</p></article>`).join('');
+}
 function laboratoryCard(lab) {
   const equipment = (lab.equipment || []).map((item) => typeof item === 'string' ? item : item.name);
   const manpower = lab.department_code === 'IT' ? (lab.technicalStaff || 'Not Available in Official Document') : '';
@@ -341,5 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeHomeDepartment();
   initializeResourceSearch();
   initializeDirectoryFilters('facility');
+  initializeDirectoryFilters('equipment');
+  initializeExpertiseDirectory();
   initializeDepartments();
 });
