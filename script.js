@@ -288,8 +288,21 @@ async function initializeLaboratoryDirectory() {
       });
 
     } catch (error) {
-      list.innerHTML =
-        `<div class="empty-state">Laboratories could not be loaded. ${escapeHtml(error.message)}</div>`;
+      const localLabs = [
+        ...itLaboratories.map(normalizeLocalLaboratory),
+        ...cseLaboratories,
+        ...aidsLaboratories.map(normalizeLocalLaboratory)
+      ].filter((lab) => selectedDepartment === 'ALL' || lab.department_code === selectedDepartment)
+        .filter((lab) => !search.value.trim() || laboratorySearchText(lab).includes(search.value.trim().toLowerCase()))
+        .filter((lab) => semester.value === 'all' || lab.semester === semester.value)
+        .filter((lab) => regulation.value === 'all' || lab.regulation === regulation.value || lab.regulation === regulation.value.replace(' ', ''))
+        .filter((lab) => !courseCode.value.trim() || (lab.course_code || '').toLowerCase().includes(courseCode.value.trim().toLowerCase()))
+        .filter((lab) => type.value === 'all' || lab.type === type.value);
+      laboratoryRecords = localLabs;
+      list.innerHTML = localLabs.length
+        ? localLabs.map(laboratoryCard).join('')
+        : '<div class="empty-state">No laboratories match the selected filters.</div>';
+      list.querySelectorAll('[data-lab-id]').forEach((button) => button.addEventListener('click', () => openLaboratoryModal(button.dataset.labId)));
     }
   }
 
