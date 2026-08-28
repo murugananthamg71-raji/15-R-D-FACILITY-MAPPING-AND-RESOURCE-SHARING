@@ -1,0 +1,2 @@
+const router = require('express').Router(); const controller = require('../controllers/equipmentController'); const authenticate = require('../middleware/authMiddleware'); const roles = require('../middleware/roleMiddleware');
+router.get('/', controller.list); router.get('/:id', controller.get); router.post('/', authenticate, roles('admin', 'faculty'), controller.create); router.put('/:id', authenticate, roles('admin', 'faculty'), controller.update); router.delete('/:id', authenticate, roles('admin', 'faculty'), controller.remove); module.exports = router;

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Departmental R&amp;D Facility Mapping and Resource Sharing Portal for discovering, sharing, and collaborating on college research resources.">
+  <title>R&amp;D Resource Sharing Portal | College of Innovation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="College R&amp;D Portal home">
+        <img class="college-logo" src="assets/college-logo.jpeg" alt="College Logo" width="56" height="56">
+        <span class="brand-text">
+          <span class="college-name">College of Innovation</span>
+          <span class="portal-name">R&amp;D Resource Portal</span>
+        </span>
+      </a>
+
+      <button class="menu-toggle" type="button" aria-controls="main-navigation" aria-expanded="false" aria-label="Open navigation">&#9776;</button>
+      <nav class="main-navigation" id="main-navigation" aria-label="Main navigation">
+        <ul class="navigation-list">
+          <li><a href="index.html" aria-current="page">Home</a></li>
+          <li><a href="departments.html">Departments</a></li>
+          <li><a href="facilities.html">Facilities</a></li>
+          <li><a href="equipment.html">Equipment</a></li>
+          <li><a href="expertise.html">Expertise</a></li>
+          <li><a href="requests.html">Requests</a></li>
+        </ul>
+      </nav>
+
+      <a class="button button-login" href="login.html">Login</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero-section" id="home" aria-labelledby="hero-title">
+      <div class="container hero-content">
+        <p class="eyebrow">College research &amp; development</p>
+        <h1 id="hero-title">Discover. Share. Collaborate.</h1>
+        <p class="hero-description">Explore research facilities, equipment, laboratories, and expertise available across departments and promote interdisciplinary research collaboration.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#resource-search">Explore Resources</a>
+        </div>
+        <form class="search-panel" id="resource-search" action="#featured-resources" method="get" role="search">
+          <label for="resource-query">Find R&amp;D Resources</label>
+          <div class="search-row">
+            <input class="input" id="resource-query" name="query" type="search" placeholder="Search equipment, facilities, laboratories, expertise..." autocomplete="off">
+            <button class="button button-primary" type="submit">Search</button>
+          </div>
+          <div class="search-filters">
+            <select class="select" id="home-department" name="department" aria-label="Department"><option value="all">All Departments</option></select>
+            <select class="select" id="home-type" name="type" aria-label="Resource type"><option value="all">All resource types</option><option>Facility</option><option>Equipment</option></select>
+            <select class="select" id="home-availability" name="availability" aria-label="Availability"><option value="all">Any availability</option><option>Available</option><option>Limited</option><option>Unavailable</option></select>
+            <select class="select" id="home-area" name="area" aria-label="Research area"><option value="all">All research areas</option><option>Robotics</option><option>IoT</option><option>Data Science</option><option>VLSI</option></select>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="statistics-title">
+      <div class="container">
+        <div class="section-heading">
+          <p class="eyebrow">A connected research community</p>
+          <h2 id="statistics-title">Research at a glance</h2>
+        </div>
+        <div class="statistics-grid">
+          <article class="statistic-card">
+            <span class="stat-value">5</span>
+            <h3>Departments</h3>
+            <p>Collaborating across disciplines</p>
+          </article>
+          <article class="statistic-card">
+            <span class="stat-value">38</span>
+            <h3>R&amp;D Facilities</h3>
+            <p>Specialized spaces for discovery</p>
+          </article>
+          <article class="statistic-card">
+            <span class="stat-value">156</span>
+            <h3>Equipment</h3>
+            <p>Tools available to researchers</p>
+          </article>
+          <article class="statistic-card">
+            <span class="stat-value">72</span>
+            <h3>Research Experts</h3>
+            <p>Faculty and technical specialists</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-tint" id="featured-resources" aria-labelledby="resources-title">
+      <div class="container">
+        <div class="section-heading section-heading-with-action">
+          <div>
+            <p class="eyebrow">Explore what is available</p>
+            <h2 id="resources-title">Featured R&amp;D resources</h2>
+          </div>
+          <a class="text-link" href="facilities.html">View all resources</a>
+        </div>
+
+        <div class="resource-grid" id="featured-resource-list"></div>
+      </div>
+    </section>
+
+    <section class="section" id="expertise" aria-labelledby="expertise-title">
+      <div class="container expertise-layout">
+        <div class="section-heading">
+          <p class="eyebrow">People behind the research</p>
+          <h2 id="expertise-title">Find the right expertise</h2>
+          <p>Connect with researchers and technical specialists whose knowledge can help shape your next project.</p>
+          <a class="button button-secondary" href="expertise.html">Browse expertise</a>
+        </div>
+        <div class="expertise-list" aria-label="Research expertise areas">
+          <a class="expertise-item" href="expertise.html"><span>Artificial Intelligence</span><span aria-hidden="true">&#8594;</span></a>
+          <a class="expertise-item" href="expertise.html"><span>Renewable Energy</span><span aria-hidden="true">&#8594;</span></a>
+          <a class="expertise-item" href="expertise.html"><span>Cloud Computing</span><span aria-hidden="true">&#8594;</span></a>
+          <a class="expertise-item" href="expertise.html"><span>Embedded Systems</span><span aria-hidden="true">&#8594;</span></a>
+          <a class="expertise-item" href="expertise.html"><span>Robotics and Automation</span><span aria-hidden="true">&#8594;</span></a>
+          <a class="expertise-item" href="expertise.html"><span>Data Science</span><span aria-hidden="true">&#8594;</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="request-band" id="requests" aria-labelledby="requests-title">
+      <div class="container request-panel">
+        <div class="request-content">
+          <p class="eyebrow">Need something specific?</p>
+          <h2 id="requests-title">Request a research resource</h2>
+          <p>Tell us what you need and we will help you find the right facility, equipment, or collaborator across the college.</p>
+        </div>
+        <a class="button button-light" href="requests.html">Submit a request</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a class="brand brand-footer" href="#top" aria-label="Back to portal home">
+          <img class="college-logo" src="assets/college-logo.jpeg" alt="College Logo" width="48" height="48">
+          <span class="brand-text">
+            <span class="college-name">College of Innovation</span>
+            <span class="portal-name">R&amp;D Resource Portal</span>
+          </span>
+        </a>
+        <p>Building stronger research partnerships through shared resources.</p>
+      </div>
+      <div class="footer-column">
+        <h2>Portal</h2>
+        <ul>
+          <li><a href="departments.html">Departments</a></li>
+          <li><a href="facilities.html">Facilities</a></li>
+          <li><a href="equipment.html">Equipment</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h2>Connect</h2>
+        <ul>
+          <li><a href="expertise.html">Research expertise</a></li>
+          <li><a href="requests.html">Resource requests</a></li>
+          <li><a href="mailto:research@college.edu">research@college.edu</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h2>Office</h2>
+        <address>
+          R&amp;D Coordination Office<br>
+          research@college.edu<br>
+          +91 XXXXX XXXXX
+        </address>
+      </div>
+    </div>
+    <div class="container footer-bottom">
+      <p>&copy; 2026 College of Innovation. All rights reserved. Developed by Student Research Team.</p>
+      <a href="#top">Back to top</a>
+    </div>
+  </footer>
+
+  <div id="modal-root"></div>
+  <div class="toast-region" aria-live="polite"></div>
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

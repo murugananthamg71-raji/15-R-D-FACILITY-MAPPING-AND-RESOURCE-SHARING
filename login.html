@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login | Karpagam Institute of Technology</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page">
+  <main class="login-screen">
+    <section class="login-visual" aria-label="Karpagam Institute of Technology campus">
+      <img class="login-campus-image" src="assets/login-campus.png" alt="Karpagam Institute of Technology campus">
+    </section>
+
+    <section class="login-panel" aria-labelledby="login-title">
+      <div class="login-panel-inner">
+        <div class="login-brand">
+          <img class="login-panel-logo" src="assets/college-logo.jpeg" alt="College Logo">
+        </div>
+
+        <div class="login-heading">
+          <p class="login-portal">R&amp;D Resource Sharing Portal</p>
+          <h2 id="login-title">Research Portal Login</h2>
+          <p>Sign in to discover, share, and collaborate on institute resources.</p>
+        </div>
+
+        <form class="login-form" id="login-form">
+          <div class="login-field">
+            <label for="login-email">Email / Roll Number</label>
+            <div class="login-input-wrap">
+              <span class="login-field-icon" aria-hidden="true">&#64;</span>
+              <input class="input" id="login-email" type="email" required placeholder="you@college.edu" autocomplete="username">
+            </div>
+          </div>
+          <div class="login-field">
+            <label for="login-password">Password</label>
+            <div class="login-input-wrap">
+              <span class="login-field-icon" aria-hidden="true">&#8226;</span>
+              <input class="input" id="login-password" type="password" required placeholder="Enter your password" autocomplete="current-password">
+            </div>
+          </div>
+          <div class="login-field">
+            <label for="login-role">Role</label>
+            <select class="select" id="login-role">
+              <option>Student / Researcher</option>
+              <option>Faculty</option>
+              <option>Administrator</option>
+            </select>
+          </div>
+
+          <button class="login-link login-forgot" type="button" id="forgot-password">Forgot Password?</button>
+          <button class="button login-submit" type="submit">Login</button>
+          <p id="login-message" class="message" hidden></p>
+        </form>
+
+        <div class="login-divider"><span>OR</span></div>
+        <div class="login-secondary-actions">
+          <a class="button login-secondary-button" href="./index.html?guest=1">Continue as Guest</a>
+          <a class="button login-secondary-button" href="mailto:research@college.edu">Contact R&amp;D Office</a>
+        </div>
+
+        <footer class="login-footer">&copy; 2026 Karpagam Institute of Technology <span>R&amp;D Resource Sharing Portal</span></footer>
+      </div>
+    </section>
+  </main>
+  <div class="toast-region" aria-live="polite"></div>
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

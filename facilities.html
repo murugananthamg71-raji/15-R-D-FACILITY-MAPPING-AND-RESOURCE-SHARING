@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Facilities and Laboratories | R&amp;D Portal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header" id="top"><div class="container header-inner"><a class="brand" href="index.html"><img class="college-logo" src="assets/college-logo.jpeg" alt="College Logo" width="52" height="52"><span class="brand-text"><span class="college-name">College of Innovation</span><span class="portal-name">R&amp;D Resource Sharing Portal</span></span></a><button class="menu-toggle" type="button" aria-controls="main-navigation" aria-expanded="false" aria-label="Open navigation">&#9776;</button><nav class="main-navigation" id="main-navigation" aria-label="Main navigation"><ul class="navigation-list"><li><a href="index.html">Home</a></li><li><a href="departments.html">Departments</a></li><li><a href="facilities.html" aria-current="page">Facilities</a></li><li><a href="equipment.html">Equipment</a></li><li><a href="expertise.html">Expertise</a></li><li><a href="requests.html">Requests</a></li></ul></nav><a class="button button-login" href="login.html">Login</a></div></header>
+  <main>
+    <section class="page-intro"><div class="container"><p class="eyebrow">Shared spaces</p><h1>Facilities and Laboratories</h1><p>Explore department laboratories and shared research facilities. Laboratory inventory is loaded from the PostgreSQL API.</p></div></section>
+    <section class="section"><div class="container">
+      <div class="filter-bar" id="facility-filters">
+        <div class="form-field"><label for="facility-search">Search</label><input class="input" id="facility-search" placeholder="Search facilities or course code..."></div>
+        <div class="form-field"><label for="facility-department">Department</label><select class="select" id="facility-department"><option value="all">All Departments</option></select></div>
+        <div class="form-field"><label for="facility-semester">Semester</label><select class="select" id="facility-semester"><option value="all">All Semesters</option><option>II</option><option>III</option><option>IV</option><option>V</option><option>VI</option><option>VII</option></select></div>
+        <div class="form-field"><label for="facility-regulation">Regulation</label><select class="select" id="facility-regulation"><option value="all">All Regulations</option><option>R2021</option><option>R2024</option></select></div>
+      </div>
+      <div class="filter-bar lab-filter-row">
+        <div class="form-field"><label for="facility-course-code">Course Code</label><input class="input" id="facility-course-code" placeholder="e.g. 24PME401"></div>
+        <div class="form-field"><label for="facility-type">Facility Type</label><select class="select" id="facility-type"><option value="all">All types</option><option>Laboratory</option><option>Research Facility</option><option>Testing Facility</option><option>Computing Facility</option></select></div>
+      </div>
+      <div class="directory-grid" id="facility-list"></div>
+    </div></section>
+  </main>
+  <div id="modal-root"></div><div class="toast-region" aria-live="polite"></div>
+  <footer class="site-footer"><div class="container footer-bottom"><p>&copy; 2026 College of Innovation. All rights reserved. Developed by Student Research Team.</p><a href="#top">Back to top</a></div></footer>
+  <script src="data.js?v=20260827"></script><script src="script.js?v=20260827"></script>
+</body>
+</html>
