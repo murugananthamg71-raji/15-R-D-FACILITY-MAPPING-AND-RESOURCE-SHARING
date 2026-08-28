@@ -219,6 +219,7 @@ async function initializeLaboratoryDirectory() {
   async function render() {
     list.innerHTML =
       '<div class="empty-state">Loading laboratories...</div>';
+    const selectedDepartment = normalizeDepartment(department.value);
 
     try {
       let labs = [];
@@ -227,7 +228,6 @@ async function initializeLaboratoryDirectory() {
        * IT laboratory data is maintained locally in data.js.
        * Other departments continue using the PostgreSQL API.
        */
-      const selectedDepartment = normalizeDepartment(department.value);
       if (selectedDepartment === 'IT') {
         const apiLabs = (await apiFetch('/facilities?department=IT')).map(normalizeApiLaboratory).filter((lab) => lab.type === 'Laboratory' && lab.batch_size !== null);
         const localLabsByName = new Map(itLaboratories.map((lab) => [lab.name, normalizeLocalLaboratory(lab)]));
