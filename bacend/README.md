@@ -53,21 +53,13 @@ The health endpoint checks PostgreSQL and returns HTTP 503 when the database is 
 
 ## Authentication
 
-Register and login responses return a JWT and a public user object without `password_hash`. Send the token on protected requests:
+Google sign-in verifies the Google ID token, creates a student account on first use, and returns a JWT with a public user object. Send the token on protected requests:
 
 ```http
 Authorization: Bearer <token>
 ```
 
-### Demo accounts
-
-All demo accounts use password `123456`:
-
-- Student: `student@college.edu`
-- Faculty: `faculty@college.edu`
-- Admin: `admin@college.edu`
-
-These are demonstration credentials only.
+Set `GOOGLE_CLIENT_ID` in `.env`, and add the frontend origin to the authorized JavaScript origins in Google Cloud Console.
 
 ## API endpoints
 

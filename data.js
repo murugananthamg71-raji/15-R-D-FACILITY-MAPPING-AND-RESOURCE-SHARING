@@ -202,9 +202,3 @@ const expertise = [
 
 const facilityTypes = ['Laboratory', 'Testing Facility', 'Computing Facility', 'Design Studio'];
 const expertiseCategories = ['Artificial Intelligence', 'Machine Learning', 'Data Science', 'Cloud Computing', 'Cybersecurity', 'IoT', 'Embedded Systems', 'VLSI', 'Communication Systems', 'Power Electronics', 'Renewable Energy', 'Electrical Machines', 'CAD/CAM', 'Manufacturing', 'Robotics and Automation'];
-
-const demoUsers = {
-  'student@college.edu': { name: 'Demo Student', role: 'Student / Researcher', department: 'CSE' },
-  'faculty@college.edu': { name: 'Demo Faculty', role: 'Faculty', department: 'CSE' },
-  'admin@college.edu': { name: 'Portal Administrator', role: 'Administrator', department: 'IT' }
-};
