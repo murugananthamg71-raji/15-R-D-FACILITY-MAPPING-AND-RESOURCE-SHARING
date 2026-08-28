@@ -175,6 +175,10 @@ function normalizeLocalLaboratory(lab) {
   const department = normalizeDepartment(lab.department);
   return { ...lab, department, department_code: department, type: 'Laboratory', course_code: lab.courseCode || (department === 'IT' ? 'IT Laboratory' : 'Not specified'), semester: lab.semester || 'Not specified', regulation: lab.regulation || 'Not specified', capacity: `${lab.batchSize || lab.batch_size} students`, batch_size: lab.batchSize || lab.batch_size, availability: 'Available', equipment_count: lab.equipment.length, technicalStaff: manpower?.name || unavailable, designation: manpower?.designation || unavailable, qualification: manpower?.qualification || unavailable, description: lab.description || `${lab.utilization} | Batch Size: ${lab.batchSize} | Technical Manpower: ${manpower?.name || unavailable}` };
 }
+function normalizeResourceLaboratory(resource) {
+  const department = normalizeDepartment(resource.department);
+  return { ...resource, department_code: department, type: 'Laboratory', course_code: 'Not specified', semester: 'Not specified', regulation: 'Not specified', batch_size: resource.capacity, equipment: [], equipment_count: 0, technicalStaff: resource.faculty || 'Not Specified', designation: 'Not Specified', qualification: 'Not Specified' };
+}
 function normalizeApiLaboratory(lab) {
   const department = normalizeDepartment(lab.department_code || lab.department);
   return { ...lab, department, department_code: department };
@@ -291,7 +295,8 @@ async function initializeLaboratoryDirectory() {
       const localLabs = [
         ...itLaboratories.map(normalizeLocalLaboratory),
         ...cseLaboratories,
-        ...aidsLaboratories.map(normalizeLocalLaboratory)
+        ...aidsLaboratories.map(normalizeLocalLaboratory),
+        ...resources.filter((resource) => resource.type === 'Facility' && ['ECE', 'EEE', 'MECH'].includes(normalizeDepartment(resource.department))).map(normalizeResourceLaboratory)
       ].filter((lab) => selectedDepartment === 'ALL' || lab.department_code === selectedDepartment)
         .filter((lab) => !search.value.trim() || laboratorySearchText(lab).includes(search.value.trim().toLowerCase()))
         .filter((lab) => semester.value === 'all' || lab.semester === semester.value)
