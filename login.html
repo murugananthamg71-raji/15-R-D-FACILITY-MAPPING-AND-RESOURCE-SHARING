@@ -3,10 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="google-client-id" content="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com">
   <title>Login | Karpagam Institute of Technology</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="login-page">
   <main class="login-screen">
@@ -26,11 +24,33 @@
           <p>Sign in to discover, share, and collaborate on institute resources.</p>
         </div>
 
-        <div class="login-form" id="login-form">
-          <p class="login-google-label">Sign in or register with your Google account</p>
-          <div id="google-signin-button"></div>
+        <form class="login-form" id="login-form">
+          <div class="login-field">
+            <label for="login-email">Email / Roll Number</label>
+            <div class="login-input-wrap">
+              <span class="login-field-icon" aria-hidden="true">&#64;</span>
+              <input class="input" id="login-email" type="email" required placeholder="you@college.edu" autocomplete="username">
+            </div>
+          </div>
+          <div class="login-field">
+            <label for="login-password">Password</label>
+            <div class="login-input-wrap">
+              <span class="login-field-icon" aria-hidden="true">&#8226;</span>
+              <input class="input" id="login-password" type="password" required placeholder="Enter your password" autocomplete="current-password">
+            </div>
+          </div>
+          <div class="login-field">
+            <label for="login-role">Role</label>
+            <select class="select" id="login-role">
+              <option>Student / Researcher</option>
+              <option>Faculty</option>
+              <option>Administrator</option>
+            </select>
+          </div>
+          <button class="login-link login-forgot" type="button" id="forgot-password">Forgot Password?</button>
+          <button class="button login-submit" type="submit">Login</button>
           <p id="login-message" class="message" hidden></p>
-        </div>
+        </form>
 
         <div class="login-divider"><span>OR</span></div>
         <div class="login-secondary-actions">

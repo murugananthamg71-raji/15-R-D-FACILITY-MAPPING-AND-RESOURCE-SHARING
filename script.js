@@ -52,13 +52,14 @@ function initializeSessionActions() {
   });
 }
 function initializeLogin() {
-  const form = document.getElementById('google-signin-button');
+  const form = document.getElementById('login-form');
   const message = document.getElementById('login-message');
   if (!form || !message) return;
-  window.handleGoogleCredential = async (response) => {
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
     message.hidden = true;
     try {
-      const data = await apiFetch('/auth/google', { method: 'POST', body: JSON.stringify({ credential: response.credential }) });
+      const data = await apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email: form.elements['login-email'].value, password: form.elements['login-password'].value }) });
       localStorage.setItem(STORAGE.user, JSON.stringify(data.user));
       localStorage.setItem('rdp_token', data.token);
       window.location.href = 'dashboard.html';
@@ -66,15 +67,7 @@ function initializeLogin() {
       message.textContent = error.message;
       message.hidden = false;
     }
-  };
-  const clientId = document.querySelector('meta[name="google-client-id"]')?.content;
-  if (!clientId || clientId.startsWith('YOUR_') || !window.google?.accounts?.id) {
-    message.textContent = 'Google login is not configured yet.';
-    message.hidden = false;
-    return;
-  }
-  window.google.accounts.id.initialize({ client_id: clientId, callback: window.handleGoogleCredential });
-  window.google.accounts.id.renderButton(form, { theme: 'outline', size: 'large', width: 360, text: 'continue_with' });
+  });
 }
 function renderDashboardStats(stats) {
   const cards = document.getElementById('dashboard-cards');

@@ -1,9 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { OAuth2Client } = require('google-auth-library');
 const pool = require('../config/database');
-
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 function publicUser(row) {
   return { id: row.id, name: row.name, email: row.email, role: row.role, department: row.department_code ? { id: row.department_id, code: row.department_code, name: row.department_name } : null };
@@ -27,20 +24,5 @@ async function login(req, res) {
   if (!result.rowCount || !(await bcrypt.compare(password, result.rows[0].password_hash))) return res.status(401).json({ success: false, message: 'Invalid email or password' });
   res.json({ success: true, data: { user: publicUser(result.rows[0]), token: tokenFor(result.rows[0]) } });
 }
-async function googleLogin(req, res) {
-  const { credential } = req.body;
-  if (!credential || !process.env.GOOGLE_CLIENT_ID) return res.status(400).json({ success: false, message: 'Google login is not configured' });
-  const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
-  const profile = ticket.getPayload();
-  if (!profile?.email || !profile.email_verified) return res.status(401).json({ success: false, message: 'Use a verified Google account' });
-  const email = profile.email.toLowerCase().trim();
-  let result = await pool.query(`${userSelect} WHERE LOWER(u.email) = LOWER($1)`, [email]);
-  if (!result.rowCount) {
-    const hash = await bcrypt.hash(`${profile.sub}:${process.env.JWT_SECRET}`, 12);
-    const created = await pool.query('INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id', [profile.name || email.split('@')[0], email, hash, 'student']);
-    result = await pool.query(`${userSelect} WHERE u.id = $1`, [created.rows[0].id]);
-  }
-  res.json({ success: true, data: { user: publicUser(result.rows[0]), token: tokenFor(result.rows[0]) } });
-}
 async function me(req, res) { const result = await pool.query(`${userSelect} WHERE u.id = $1`, [req.user.id]); if (!result.rowCount) return res.status(404).json({ success: false, message: 'User not found' }); res.json({ success: true, data: { user: publicUser(result.rows[0]) } }); }
-module.exports = { register, login, googleLogin, me };
+module.exports = { register, login, me };
