@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Departmental R&amp;D Facility Mapping and Resource Sharing Portal for discovering, sharing, and collaborating on college research resources.">
   <title>R&amp;D Resource Sharing Portal | College of Innovation</title>
+  <script>
+    if (!new URLSearchParams(window.location.search).has('guest')) {
+      window.location.replace('login.html');
+    }
+  </script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>

@@ -69,6 +69,38 @@ function initializeLogin() {
     }
   });
 }
+function renderDashboardStats(stats) {
+  const cards = document.getElementById('dashboard-cards');
+  const detail = document.getElementById('dashboard-detail');
+  if (!cards || !detail) return;
+  const items = [
+    ['Departments', stats.departments, 'Research departments'],
+    ['Facilities', stats.facilities, 'Shared research spaces'],
+    ['Equipment', stats.equipment, 'Available equipment records'],
+    ['Experts', stats.experts, 'Faculty and specialists'],
+    ['Pending Requests', stats.pendingRequests, 'Requests awaiting review'],
+    ['My Requests', stats.myRequests, 'Requests submitted by you']
+  ].filter(([, value]) => value !== undefined);
+  cards.innerHTML = items.map(([label, value, description]) => `<article class="dashboard-card"><h2>${label}</h2><div class="big-number">${value}</div><p>${description}</p></article>`).join('');
+  detail.innerHTML = '<div class="section-heading"><p class="eyebrow">Resource overview</p><h2>Research resources at a glance</h2><p>Use the portal navigation to explore facilities, equipment, expertise, and requests across the institute.</p></div>';
+}
+function initializeDashboard() {
+  const cards = document.getElementById('dashboard-cards');
+  if (!cards) return;
+  const localStats = {
+    departments: departments.length,
+    facilities: resources.filter((resource) => resource.type === 'Facility').length,
+    equipment: resources.filter((resource) => resource.type === 'Equipment').length,
+    experts: expertise.length,
+    pendingRequests: getRequests().filter((request) => request.status === 'Pending').length
+  };
+  const currentUser = getCurrentUser();
+  if (currentUser) {
+    document.getElementById('dashboard-subtitle').textContent = `Welcome back, ${currentUser.name || currentUser.email || 'researcher'}.`;
+  }
+  renderDashboardStats(localStats);
+  apiFetch('/dashboard/stats').then(renderDashboardStats).catch(() => {});
+}
 function populateDepartmentSelect(select, placeholder = 'All Departments') {
   if (!select) return;
   select.innerHTML = `<option value="${placeholder === 'Select department' ? '' : 'all'}">${placeholder}</option>`;
@@ -278,6 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeLogoFallback();
   initializeSessionActions();
   initializeLogin();
+  initializeDashboard();
   initializeStorage();
   initializeHomeDepartment();
   initializeResourceSearch();
