@@ -1,1 +1,64 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Dashboard | R&amp;D Portal</title><link rel="stylesheet" href="style.css"></head><body><header class="site-header" id="top"><div class="container header-inner"><a class="brand" href="index.html"><img class="college-logo" src="assets/college-logo.jpeg" alt="College Logo" width="52" height="52"><span class="brand-text"><span class="college-name">College of Innovation</span><span class="portal-name">R&amp;D Resource Sharing Portal</span></span></a><button class="menu-toggle" type="button" aria-controls="main-navigation" aria-expanded="false" aria-label="Open navigation">&#9776;</button><nav class="main-navigation" id="main-navigation" aria-label="Main navigation"><ul class="navigation-list"><li><a href="index.html">Home</a></li><li><a href="departments.html">Departments</a></li><li><a href="facilities.html">Facilities</a></li><li><a href="equipment.html">Equipment</a></li><li><a href="expertise.html">Expertise</a></li><li><a href="requests.html">Requests</a></li></ul></nav><button class="button button-login" id="logout-button" type="button">Logout</button></div></header><main><div class="container dashboard-layout"><aside class="sidebar"><ul><li><a href="dashboard.html" aria-current="page">Dashboard</a></li><li><a href="departments.html">Departments</a></li><li><a href="facilities.html">Facilities</a></li><li><a href="equipment.html">Equipment</a></li><li><a href="expertise.html">Expertise</a></li><li><a href="requests.html">Requests</a></li><li><a href="login.html">Profile</a></li></ul></aside><section><div class="dashboard-header"><div><p class="eyebrow">Research workspace</p><h1 id="dashboard-title">Dashboard</h1><p id="dashboard-subtitle"></p></div></div><div class="dashboard-grid" id="dashboard-cards"></div><section class="section" style="padding:42px 0 0" id="dashboard-detail"></section></section></div></main><div class="toast-region" aria-live="polite"></div><script src="data.js"></script><script src="script.js?v=20260828"></script></body></html>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Dashboard | R&amp;D Portal</title><link rel="stylesheet" href="style.css"></head><body><header class="site-header" id="top"><div class="container header-inner"><a class="brand" href="index.html"><img class="college-logo" src="assets/college-logo.jpeg" alt="College Logo" width="52" height="52"><span class="brand-text"><span class="college-name">College of Innovation</span><span class="portal-name">R&amp;D Resource Sharing Portal</span></span></a><button class="menu-toggle" type="button" aria-controls="main-navigation" aria-expanded="false" aria-label="Open navigation">&#9776;</button><nav class="main-navigation" id="main-navigation" aria-label="Main navigation"><ul class="navigation-list"><li><a href="index.html">Home</a></li><li><a href="departments.html">Departments</a></li><li><a href="facilities.html">Facilities</a></li><li><a href="equipment.html">Equipment</a></li><li><a href="expertise.html">Expertise</a></li><li><a href="requests.html">Requests</a></li></ul></nav><button class="button button-login" id="logout-button" type="button">Logout</button></div></header><main><div class="container dashboard-layout"><aside class="sidebar"><ul><li><a href="dashboard.html" aria-current="page">Dashboard</a></li><li><a href="departments.html">Departments</a></li><li><a href="facilities.html">Facilities</a></li><li><a href="equipment.html">Equipment</a></li><li><a href="expertise.html">Expertise</a></li><li><a href="requests.html">Requests</a></li><li><a href="login.html">Profile</a></li></ul></aside><section><div class="dashboard-header"><div><p class="eyebrow">Research workspace</p><h1 id="dashboard-title">Dashboard</h1><p id="dashboard-subtitle"></p></div></div><div class="dashboard-grid" id="dashboard-cards"></div><section class="section" style="padding:42px 0 0" id="dashboard-detail"></section>
+
+        <section class="faculty-roster-panel" aria-labelledby="faculty-roster-title">
+          <div class="faculty-roster-header">
+            <div class="faculty-roster-brand-wrap">
+              <span class="faculty-badge">FACULTY ACCESS CONTROL</span>
+              <span class="roster-subtle">Database Filtered</span>
+            </div>
+            <button type="button" class="refresh-roster-button" id="refresh-roster-button">↻ Refresh Authorized Roster</button>
+          </div>
+
+          <div class="faculty-roster-title-row">
+            <div class="faculty-roster-title-wrap">
+              <h2 id="faculty-roster-title">MY STUDENTS</h2>
+              <p>Authorized student roster automatically synchronized from central registration database</p>
+            </div>
+          </div>
+
+          <div class="faculty-roster-toolbar">
+            <div class="roster-search-wrap">
+              <span class="field-icon">⌕</span>
+              <input id="roster-search" type="search" placeholder="Search students in your authorized class..." aria-label="Search students">
+            </div>
+            <select id="roster-department" class="roster-select" aria-label="Department filter">
+              <option value="all">Department</option>
+              <option>Information Technology</option>
+              <option>Electronics and Communication Engineering</option>
+            </select>
+            <select id="roster-year" class="roster-select" aria-label="Academic year filter">
+              <option value="all">Academic Year</option>
+              <option>3rd Year</option>
+              <option>2nd Year</option>
+            </select>
+            <select id="roster-section" class="roster-select" aria-label="Section filter">
+              <option value="all">Section</option>
+              <option>A</option>
+              <option>B</option>
+            </select>
+          </div>
+
+          <div class="roster-table-wrap">
+            <div class="roster-meta-row">
+              <span class="roster-count" id="roster-count-label">AUTHORIZED STUDENTS: 14</span>
+              <span class="roster-policy">Backend Authorization Scope Enforced</span>
+            </div>
+
+            <table class="roster-table">
+              <thead>
+                <tr>
+                  <th>Register No</th>
+                  <th>Name</th>
+                  <th>Department</th>
+                  <th>Year</th>
+                  <th>Section</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="authorized-students-body"></tbody>
+            </table>
+          </div>
+        </section>
+</section></div></main><div class="toast-region" aria-live="polite"></div><script src="data.js"></script><script src="script.js?v=20260828"></script></body></html>

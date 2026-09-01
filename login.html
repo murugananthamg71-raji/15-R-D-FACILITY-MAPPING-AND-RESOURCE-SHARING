@@ -3,65 +3,186 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login | Karpagam Institute of Technology</title>
+  <title>Smart Campus Login | Karpagam Institute of Technology</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="login-page">
-  <main class="login-screen">
-    <section class="login-visual" aria-label="Karpagam Institute of Technology campus">
-      <img class="login-campus-image" src="assets/login-campus.png" alt="Karpagam Institute of Technology campus">
+<body class="auth-page">
+  <main class="auth-shell">
+    <section class="auth-visual" aria-label="Campus entrance">
+      <div class="auth-visual-top">
+        <span class="brand-pill"><span class="status-dot"></span> Smart Campus • Lab Access</span>
+        <span class="campus-location">COIMBATORE • 641105</span>
+      </div>
+
+      <div class="auth-visual-content">
+        <p class="visual-kicker">Practical learning, connected</p>
+      </div>
+
+      <div class="feature-tabs">
+        <button type="button" class="feature-pill active">Lab booking</button>
+        <button type="button" class="feature-pill">Equipment status</button>
+        <button type="button" class="feature-pill">Practical schedules</button>
+      </div>
+
+      <img class="campus-image" src="assets/login-campus.png" alt="Campus building">
+      <div class="campus-bubble bubble-one"></div>
+      <div class="campus-bubble bubble-two"></div>
+      <div class="campus-bubble bubble-three"></div>
     </section>
 
-    <section class="login-panel" aria-labelledby="login-title">
-      <div class="login-panel-inner">
-        <div class="login-brand">
-          <img class="login-panel-logo" src="assets/college-logo.jpeg" alt="College Logo">
+    <section class="auth-panel" aria-labelledby="portal-title">
+      <div class="auth-card">
+        <div class="auth-card-header">
+          <div class="auth-card-brand">LAB ACCESS</div>
+          <button type="button" class="clock-button" aria-label="Portal settings">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5a9.5 9.5 0 1 1 0 19a9.5 9.5 0 0 1 0-19Zm0 2a7.5 7.5 0 1 0 0 15a7.5 7.5 0 0 0 0-15Zm.8 2.3h-1.6v5.4l4.7 2.7l.8-1.4l-3.9-2.2V4.8Z"/></svg>
+          </button>
         </div>
 
-        <div class="login-heading">
-          <p class="login-portal">R&amp;D Resource Sharing Portal</p>
-          <h2 id="login-title">Research Portal Login</h2>
-          <p>Sign in to discover, share, and collaborate on institute resources.</p>
+        <div class="auth-header-copy">
+          <h2 id="portal-title">Sign in to your portal</h2>
+          <p>Choose your access type to continue.</p>
         </div>
 
-        <form class="login-form" id="login-form">
-          <div class="login-field">
-            <label for="login-email">Email / Roll Number</label>
-            <div class="login-input-wrap">
-              <span class="login-field-icon" aria-hidden="true">&#64;</span>
-              <input class="input" id="login-email" type="email" required placeholder="you@college.edu" autocomplete="username">
+        <div class="auth-role-switch" role="tablist" aria-label="Choose access type">
+          <button type="button" class="auth-role-tab active" data-auth-role="student" role="tab" aria-selected="true">Student</button>
+          <button type="button" class="auth-role-tab" data-auth-role="faculty" role="tab" aria-selected="false">Faculty</button>
+          <button type="button" class="auth-role-tab" data-auth-role="admin" role="tab" aria-selected="false">Lab Admin</button>
+          <button type="button" class="auth-role-tab" data-auth-role="technician" role="tab" aria-selected="false">Lab Technician</button>
+        </div>
+
+        <form class="auth-form active" id="login-form" novalidate>
+          <div class="field-group">
+            <label class="auth-label" for="login-email">Register Number</label>
+            <div class="input-shell">
+              <span class="input-icon">✦</span>
+              <input id="login-email" name="login-email" type="text" placeholder="721224idat17" autocomplete="username" required>
             </div>
           </div>
-          <div class="login-field">
-            <label for="login-password">Password</label>
-            <div class="login-input-wrap">
-              <span class="login-field-icon" aria-hidden="true">&#8226;</span>
-              <input class="input" id="login-password" type="password" required placeholder="Enter your password" autocomplete="current-password">
+
+          <div class="field-group">
+            <label class="auth-label" for="login-password">Password</label>
+            <div class="input-shell">
+              <span class="input-icon">◌</span>
+              <input id="login-password" name="login-password" type="password" placeholder="••••••••" autocomplete="current-password" required>
+              <button type="button" class="password-visibility" aria-label="Toggle password visibility">◌</button>
             </div>
           </div>
-          <div class="login-field">
-            <label for="login-role">Role</label>
-            <select class="select" id="login-role">
-              <option>Student / Researcher</option>
-              <option>Faculty</option>
-              <option>Administrator</option>
-            </select>
+
+          <div class="field-group">
+            <label class="auth-label" for="login-role">Role</label>
+            <div class="input-shell select-shell">
+              <span class="input-icon">▣</span>
+              <select id="login-role" name="login-role" required>
+                <option value="student">Student / Researcher</option>
+                <option value="faculty">Faculty</option>
+                <option value="admin">Lab Admin</option>
+                <option value="technician">Lab Technician</option>
+              </select>
+            </div>
           </div>
-          <button class="login-link login-forgot" type="button" id="forgot-password">Forgot Password?</button>
-          <button class="button login-submit" type="submit">Login</button>
+
+          <div class="auth-options">
+            <label class="remember-box"><input type="checkbox" checked> <span>Remember me</span></label>
+            <button type="button" class="text-link-button">Forgot password?</button>
+          </div>
+
+          <button class="primary-auth-button" type="submit">Continue to portal <span>→</span></button>
+          <p class="register-hint">New to the lab portal? <button type="button" class="text-link-button switch-to-register">Create account</button></p>
           <p id="login-message" class="message" hidden></p>
         </form>
 
-        <div class="login-divider"><span>OR</span></div>
-        <div class="login-secondary-actions">
-          <a class="button login-secondary-button" href="./index.html?guest=1">Continue as Guest</a>
-          <a class="button login-secondary-button" href="mailto:research@college.edu">Contact R&amp;D Office</a>
-        </div>
+        <form class="auth-form" id="register-form" novalidate>
+          <div class="field-grid two-column">
+            <div class="field-group">
+              <label class="auth-label" for="register-name">Full Name</label>
+              <input id="register-name" name="register-name" type="text" placeholder="Enter Full Name" required>
+            </div>
+            <div class="field-group">
+              <label class="auth-label" for="register-number">Register Number</label>
+              <input id="register-number" name="register-number" type="text" placeholder="ENTER REGISTER NUMBER" required>
+            </div>
+          </div>
 
-        <footer class="login-footer">&copy; 2026 Karpagam Institute of Technology <span>R&amp;D Resource Sharing Portal</span></footer>
+          <div class="field-grid two-column">
+            <div class="field-group">
+              <label class="auth-label" for="register-email">College Email</label>
+              <input id="register-email" name="register-email" type="email" placeholder="Enter College Email" required>
+            </div>
+            <div class="field-group">
+              <label class="auth-label" for="register-phone">Phone Number</label>
+              <input id="register-phone" name="register-phone" type="tel" placeholder="Enter Phone Number" required>
+            </div>
+          </div>
+
+          <div class="field-grid two-column">
+            <div class="field-group">
+              <label class="auth-label" for="register-department">Department</label>
+              <select id="register-department" name="register-department" required>
+                <option value="">Select Department</option>
+                <option>Information Technology</option>
+                <option>Electronics and Communication Engineering</option>
+                <option>Computer Science and Engineering</option>
+                <option>Mechanical Engineering</option>
+                <option>Artificial Intelligence and Data Science</option>
+                <option>Electrical and Electronics Engineering</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="auth-label" for="register-program">Program</label>
+              <select id="register-program" name="register-program" required>
+                <option value="">Select Program</option>
+                <option>B.E. (Computer Science Engineering)</option>
+                <option>B.E. (Electronics and Communication Engineering)</option>
+                <option>B.E. (Mechanical Engineering)</option>
+                <option>B.E. (Electrical and Electronics Engineering)</option>
+                <option>B.Tech. (Information Technology)</option>
+                <option>B.Tech. (Artificial Intelligence and Data Science)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-grid two-column">
+            <div class="field-group">
+              <label class="auth-label" for="register-year">Year of Study</label>
+              <select id="register-year" name="register-year" required>
+                <option value="">Select Year</option>
+                <option>1st Year</option>
+                <option>2nd Year</option>
+                <option>3rd Year</option>
+                <option>4th Year</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="auth-label" for="register-section">Section</label>
+              <select id="register-section" name="register-section" required>
+                <option value="">Select Section</option>
+                <option>A</option>
+                <option>B</option>
+                <option>C</option>
+                <option>D</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-grid two-column">
+            <div class="field-group">
+              <label class="auth-label" for="register-password">Password</label>
+              <input id="register-password" name="register-password" type="password" placeholder="••••••••" required>
+            </div>
+            <div class="field-group">
+              <label class="auth-label" for="register-confirm-password">Confirm Password</label>
+              <input id="register-confirm-password" name="register-confirm-password" type="password" placeholder="••••••••" required>
+            </div>
+          </div>
+
+          <button class="primary-auth-button register-button" type="submit">Register Student Account <span>→</span></button>
+          <p class="register-hint">Already registered on Smart Campus? <button type="button" class="text-link-button switch-to-login">Sign in</button></p>
+        </form>
       </div>
     </section>
   </main>
+
   <div class="toast-region" aria-live="polite"></div>
   <script src="data.js"></script>
   <script src="script.js"></script>

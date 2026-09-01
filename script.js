@@ -1,6 +1,14 @@
 /* R&D Portal frontend demo: all data is local and intentionally non-secure. */
-const STORAGE = { resources: 'rdp_resources', requests: 'rdp_requests', user: 'rdp_current_user' };
-const API_BASE = 'http://localhost:5001/api';
+const STORAGE = { resources: 'rdp_resources', requests: 'rdp_requests', user: 'rdp_current_user', registeredUsers: 'rdp_registered_users' };
+const isNetlifyHost = typeof window !== 'undefined' && window.location.hostname.includes('netlify.app');
+const API_BASE = isNetlifyHost ? 'https://rd-resource-sharing-portal.netlify.app/api' : 'http://localhost:5001/api';
+const demoLoginAccounts = [
+  { login: '721224idat17', password: '123456', name: 'Demo Student', email: 'student@college.edu', role: 'student', department: 'CSE', registerNumber: '721224idat17' },
+  { login: 'faculty123', password: '123456', name: 'Demo Faculty', email: 'faculty@college.edu', role: 'faculty', department: 'IT', registerNumber: 'faculty123' },
+  { login: 'labadmin123', password: '123456', name: 'Lab Admin', email: 'admin@college.edu', role: 'admin', department: 'IT', registerNumber: 'labadmin123' },
+  { login: 'tech123', password: '123456', name: 'Lab Technician', email: 'tech@college.edu', role: 'technician', department: 'IT', registerNumber: 'tech123' }
+];
+
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('rdp_token');
   const headers = { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(options.headers || {}) };
@@ -8,6 +16,46 @@ async function apiFetch(path, options = {}) {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(payload.message || `API request failed with ${response.status}`);
   return payload.data;
+}
+
+function getRegisteredUsers() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE.registeredUsers) || '[]');
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveRegisteredUsers(users) {
+  localStorage.setItem(STORAGE.registeredUsers, JSON.stringify(users));
+}
+
+function findLocalUser(loginValue, passwordValue, selectedRole = null) {
+  const normalizedLogin = String(loginValue || '').trim().toLowerCase();
+  const normalizedPassword = String(passwordValue || '');
+  const normalizedRole = selectedRole ? String(selectedRole).trim().toLowerCase() : null;
+
+  const fromCustomUsers = getRegisteredUsers().find((user) => {
+    const sameLogin = [user.email, user.registerNumber].some((field) => String(field || '').trim().toLowerCase() === normalizedLogin);
+    const matchingRole = !normalizedRole || String(user.role || '').trim().toLowerCase() === normalizedRole;
+    return sameLogin && matchingRole && String(user.password || '') === normalizedPassword;
+  });
+
+  if (fromCustomUsers) {
+    return {
+      name: fromCustomUsers.name,
+      email: fromCustomUsers.email,
+      role: fromCustomUsers.role,
+      department: fromCustomUsers.department,
+      registerNumber: fromCustomUsers.registerNumber
+    };
+  }
+
+  return demoLoginAccounts.find((user) => {
+    const sameLogin = user.login === normalizedLogin || user.email === normalizedLogin || user.registerNumber === normalizedLogin;
+    const matchingRole = !normalizedRole || String(user.role || '').trim().toLowerCase() === normalizedRole;
+    return sameLogin && matchingRole && user.password === normalizedPassword;
+  }) || null;
 }
 
 // Data initialization and LocalStorage
@@ -38,18 +86,59 @@ function clearSession() {
   localStorage.removeItem('rdp_token');
   window.location.href = 'login.html';
 }
+function renderUserSummary() {
+  const currentUser = getCurrentUser();
+  const summary = document.getElementById('user-profile-summary');
+  const homeCard = document.getElementById('home-user-card');
+
+  if (!summary && !homeCard) return;
+
+  if (!currentUser) {
+    if (summary) summary.innerHTML = '<span class="user-summary-empty">Not signed in</span>';
+    if (homeCard) homeCard.innerHTML = '';
+    return;
+  }
+
+  const roleLabel = String(currentUser.role || 'student').replace(/\b\w/g, (letter) => letter.toUpperCase());
+  const userText = `${currentUser.name || currentUser.email || 'User'} • ${roleLabel}`;
+
+  if (summary) {
+    summary.innerHTML = `<div class="user-summary-pill"><span class="user-summary-name">${escapeHtml(currentUser.name || currentUser.email || 'User')}</span><span class="user-summary-role">${escapeHtml(roleLabel)}</span></div>`;
+  }
+
+  if (homeCard) {
+    homeCard.innerHTML = `
+      <div class="user-card-box">
+        <div class="user-card-label">Logged in as</div>
+        <div class="user-card-name">${escapeHtml(currentUser.name || currentUser.email || 'User')}</div>
+        <div class="user-card-meta">${escapeHtml(currentUser.email || currentUser.registerNumber || '')}</div>
+        <div class="user-card-meta">Role: ${escapeHtml(roleLabel)}</div>
+      </div>
+    `;
+  }
+
+  document.querySelectorAll('#logout-button').forEach((button) => {
+    button.textContent = 'Logout';
+    button.setAttribute('title', userText);
+  });
+}
+
 function initializeSessionActions() {
   const currentUser = getCurrentUser();
   document.querySelectorAll('#logout-button').forEach((button) => button.addEventListener('click', clearSession));
-  if (!currentUser) return;
-  document.querySelectorAll('.button-login[href="login.html"]').forEach((link) => {
-    const logout = document.createElement('button');
-    logout.className = link.className;
-    logout.type = 'button';
-    logout.textContent = 'Logout';
-    logout.addEventListener('click', clearSession);
-    link.replaceWith(logout);
-  });
+
+  if (currentUser) {
+    document.querySelectorAll('.button-login[href="login.html"]').forEach((link) => {
+      const logout = document.createElement('button');
+      logout.className = link.className;
+      logout.type = 'button';
+      logout.textContent = 'Logout';
+      logout.addEventListener('click', clearSession);
+      link.replaceWith(logout);
+    });
+  }
+
+  renderUserSummary();
 }
 function initializeLogin() {
   const form = document.getElementById('login-form');
@@ -58,29 +147,173 @@ function initializeLogin() {
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     message.hidden = true;
+    message.className = 'message';
+
+    const loginValue = form.elements['login-email'].value.trim();
+    const passwordValue = form.elements['login-password'].value;
+    const roleValue = String(form.elements['login-role']?.value || '').trim().toLowerCase();
+
+    const localUser = findLocalUser(loginValue, passwordValue, roleValue);
+    if (localUser) {
+      localStorage.setItem(STORAGE.user, JSON.stringify({
+        name: localUser.name,
+        email: localUser.email,
+        role: localUser.role,
+        department: localUser.department,
+        registerNumber: localUser.registerNumber
+      }));
+      localStorage.setItem('rdp_token', `demo-token-${localUser.role}`);
+      window.location.href = 'dashboard.html';
+      return;
+    }
+
     try {
-      const data = await apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email: form.elements['login-email'].value, password: form.elements['login-password'].value }) });
+      const data = await apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email: loginValue, password: passwordValue, role: roleValue }) });
       localStorage.setItem(STORAGE.user, JSON.stringify(data.user));
       localStorage.setItem('rdp_token', data.token);
       window.location.href = 'dashboard.html';
     } catch (error) {
-      const email = form.elements['login-email'].value.trim().toLowerCase();
-      const demoUser = demoUsers[email];
-      if (demoUser && form.elements['login-password'].value === '123456') {
-        localStorage.setItem(STORAGE.user, JSON.stringify(demoUser));
-        localStorage.setItem('rdp_token', 'demo-token');
-        window.location.href = 'dashboard.html';
-        return;
-      }
-      message.textContent = error.message;
+      message.textContent = error.message || 'Invalid credentials. Please try again.';
       message.hidden = false;
+      message.classList.add('message-error');
     }
   });
+}
+
+function initializeAuthUI() {
+  const tabs = document.querySelectorAll('.auth-role-tab');
+  const forms = document.querySelectorAll('.auth-form');
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const portalTitle = document.getElementById('portal-title');
+  const portalSubtitle = document.querySelector('.auth-header-copy p');
+
+  if (!tabs.length || !forms.length) return;
+
+  let selectedRole = 'student';
+
+  const syncLoginRole = () => {
+    const loginRole = document.getElementById('login-role');
+    if (loginRole) loginRole.value = selectedRole;
+  };
+
+  const setMode = (mode) => {
+    tabs.forEach((tab) => {
+      const active = tab.dataset.authRole === selectedRole;
+      tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', String(active));
+    });
+
+    forms.forEach((form) => {
+      form.classList.toggle('active', form.id === (mode === 'register' ? 'register-form' : 'login-form'));
+    });
+
+    syncLoginRole();
+
+    if (portalTitle) {
+      portalTitle.textContent = mode === 'register' ? 'Create your account' : 'Sign in to your portal';
+    }
+    if (portalSubtitle) {
+      portalSubtitle.textContent = mode === 'register' ? 'Create your campus access account to continue.' : 'Choose your access type to continue.';
+    }
+  };
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      selectedRole = tab.dataset.authRole || 'student';
+      setMode('login');
+    });
+  });
+
+  const loginSwitch = document.querySelector('.switch-to-login');
+  if (loginSwitch) {
+    loginSwitch.addEventListener('click', () => setMode('login'));
+  }
+
+  const registerSwitch = document.querySelector('.switch-to-register');
+  if (registerSwitch) {
+    registerSwitch.addEventListener('click', () => setMode('register'));
+  }
+
+  if (registerForm) {
+    registerForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const formData = new FormData(registerForm);
+      const name = String(formData.get('register-name') || '').trim();
+      const registerNumber = String(formData.get('register-number') || '').trim();
+      const email = String(formData.get('register-email') || '').trim();
+      const phone = String(formData.get('register-phone') || '').trim();
+      const department = String(formData.get('register-department') || '').trim();
+      const program = String(formData.get('register-program') || '').trim();
+      const year = String(formData.get('register-year') || '').trim();
+      const section = String(formData.get('register-section') || '').trim();
+      const password = String(formData.get('register-password') || '');
+      const confirmPassword = String(formData.get('register-confirm-password') || '');
+
+      if (!name || !registerNumber || !email || !phone || !department || !program || !year || !section || !password || !confirmPassword) {
+        showToast('Please complete all fields');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showToast('Passwords do not match');
+        return;
+      }
+
+      const users = getRegisteredUsers();
+      const existing = users.find((user) => user.email === email || user.registerNumber === registerNumber);
+      if (existing) {
+        showToast('Account already exists. Please sign in.');
+        registerForm.reset();
+        setMode('login');
+        return;
+      }
+
+      const newUser = {
+        id: Date.now(),
+        name,
+        registerNumber,
+        email,
+        phone,
+        department,
+        program,
+        year,
+        section,
+        password,
+        role: selectedRole,
+        createdAt: new Date().toISOString()
+      };
+
+      users.push(newUser);
+      saveRegisteredUsers(users);
+      registerForm.reset();
+      showToast('Account created successfully. Please sign in.');
+      const loginInput = document.getElementById('login-email');
+      if (loginInput) loginInput.value = registerNumber;
+      setMode('login');
+    });
+  }
+
+  if (loginForm) {
+    const passwordToggle = document.querySelector('.password-visibility');
+    if (passwordToggle) {
+      passwordToggle.addEventListener('click', () => {
+        const input = document.getElementById('login-password');
+        if (!input) return;
+        input.type = input.type === 'password' ? 'text' : 'password';
+      });
+    }
+  }
+
+  setMode('login');
 }
 function renderDashboardStats(stats) {
   const cards = document.getElementById('dashboard-cards');
   const detail = document.getElementById('dashboard-detail');
   if (!cards || !detail) return;
+
+  const currentUser = getCurrentUser();
   const items = [
     ['Departments', stats.departments, 'Research departments'],
     ['Facilities', stats.facilities, 'Shared research spaces'],
@@ -89,7 +322,41 @@ function renderDashboardStats(stats) {
     ['Pending Requests', stats.pendingRequests, 'Requests awaiting review'],
     ['My Requests', stats.myRequests, 'Requests submitted by you']
   ].filter(([, value]) => value !== undefined);
+
   cards.innerHTML = items.map(([label, value, description]) => `<article class="dashboard-card"><h2>${label}</h2><div class="big-number">${value}</div><p>${description}</p></article>`).join('');
+
+  if (currentUser) {
+    const roleLabel = String(currentUser.role || 'student').replace(/\b\w/g, (letter) => letter.toUpperCase());
+    const detailRows = [
+      ['Name', currentUser.name || currentUser.email || 'User'],
+      ['Email', currentUser.email || 'Not available'],
+      ['Role', roleLabel],
+      ['Department', currentUser.department || 'Not assigned'],
+      ['Register Number', currentUser.registerNumber || 'Not available']
+    ];
+
+    detail.innerHTML = `
+      <div class="section-heading">
+        <p class="eyebrow">Profile overview</p>
+        <h2>Account details</h2>
+      </div>
+      <div class="user-detail-grid">
+        ${detailRows.map(([label, value]) => `
+          <div class="user-detail-item">
+            <span class="user-detail-label">${escapeHtml(label)}</span>
+            <strong>${escapeHtml(value)}</strong>
+          </div>
+        `).join('')}
+      </div>
+      <div class="section-heading" style="margin-top: 2rem;">
+        <p class="eyebrow">Resource overview</p>
+        <h2>Research resources at a glance</h2>
+        <p>Use the portal navigation to explore facilities, equipment, expertise, and requests across the institute.</p>
+      </div>
+    `;
+    return;
+  }
+
   detail.innerHTML = '<div class="section-heading"><p class="eyebrow">Resource overview</p><h2>Research resources at a glance</h2><p>Use the portal navigation to explore facilities, equipment, expertise, and requests across the institute.</p></div>';
 }
 function initializeDashboard() {
@@ -103,8 +370,9 @@ function initializeDashboard() {
     pendingRequests: getRequests().filter((request) => request.status === 'Pending').length
   };
   const currentUser = getCurrentUser();
-  if (currentUser) {
-    document.getElementById('dashboard-subtitle').textContent = `Welcome back, ${currentUser.name || currentUser.email || 'researcher'}.`;
+  const subtitle = document.getElementById('dashboard-subtitle');
+  if (currentUser && subtitle) {
+    subtitle.textContent = `Welcome back, ${currentUser.name || currentUser.email || 'researcher'}.`;
   }
   renderDashboardStats(localStats);
   apiFetch('/dashboard/stats').then(renderDashboardStats).catch(() => {});
@@ -338,17 +606,215 @@ function initializeDepartments() {
   list.innerHTML = departments.map((department) => `<article class="resource-card"><span class="eyebrow">Department Code: ${escapeHtml(department.shortName)}</span><h2>${escapeHtml(department.name)}</h2><p>${escapeHtml(department.description)}</p><p><strong>${escapeHtml(department.facilities)} facilities</strong></p><a class="button button-primary" href="facilities.html?department=${encodeURIComponent(department.shortName)}">View Resources</a></article>`).join('');
 }
 
+const defaultFacultyStudents = [
+  { registerNo: '721224idat01', name: 'Priyan', department: 'Information Technology', year: '3rd Year', section: 'A', email: '24itad01@karpagamtech.ac.in', active: true },
+  { registerNo: '721224ecbd30', name: 'Mowniya C', department: 'Electronics and Communication Engineering', year: '3rd Year', section: 'A', email: '24ecbd30@karpagamtech.ac.in', active: true },
+  { registerNo: '721224ecbd47', name: 'Thiruja R', department: 'Electronics and Communication Engineering', year: '3rd Year', section: 'A', email: '24ecbd47@karpagamtech.ac.in', active: true },
+  { registerNo: '721224ecb17', name: 'Madhumathi R', department: 'Electronics and Communication Engineering', year: '3rd Year', section: 'A', email: '24ecb17@karpagamtech.ac.in', active: true },
+  { registerNo: '721224eca57', name: 'Jekin deva packiyan J', department: 'Electronics and Communication Engineering', year: '3rd Year', section: 'A', email: '24eca57@karpagamtech.ac.in', active: true },
+  { registerNo: '721224bcd52', name: 'Priyadharshini S', department: 'Electronics and Communication Engineering', year: '3rd Year', section: 'A', email: '24ecbd52@karpagamtech.ac.in', active: true },
+  { registerNo: '721224ECCD35', name: 'Suba S', department: 'Electronics and Communication Engineering', year: '3rd Year', section: 'A', email: '24ecCD35@karpagamtech.ac.in', active: true },
+  { registerNo: '721224ECAD18', name: 'Deepika Sai A', department: 'Electronics and Communication Engineering', year: '3rd Year', section: 'A', email: '24ecad18@karpagamtech.ac.in', active: true },
+  { registerNo: '721224ECCD49', name: 'Vaishnavi P', department: 'Electronics and Communication Engineering', year: '3rd Year', section: 'A', email: '24ECCD49@karpagamtech.ac.in', active: true },
+  { registerNo: '721224ecbd61', name: 'Rangnaya G', department: 'Electronics and Communication Engineering', year: '3rd Year', section: 'A', email: '24ecbd61@karpagamtech.ac.in', active: true }
+];
+
+function getAuthorizedStudents() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('rdp_registered_users') || '[]');
+    if (Array.isArray(saved) && saved.length) {
+      return saved.map((user) => ({
+        registerNo: String(user.registerNumber || user.registerNo || 'N/A'),
+        name: String(user.name || 'Student'),
+        department: String(user.department || 'Department'),
+        year: String(user.year || 'Not specified'),
+        section: String(user.section || 'A'),
+        email: String(user.email || 'student@college.edu'),
+        active: true
+      }));
+    }
+  } catch (error) {
+    return defaultFacultyStudents;
+  }
+  return defaultFacultyStudents;
+}
+
+function openStudentDetailModal(student) {
+  const root = document.getElementById('modal-root');
+  if (!root) return;
+
+  const detailRows = [
+    ['Register Number', student.registerNo || 'N/A'],
+    ['Name', student.name || 'Student'],
+    ['Department', student.department || 'Department'],
+    ['Year', student.year || 'Not specified'],
+    ['Section', student.section || 'A'],
+    ['Email', student.email || 'student@college.edu'],
+    ['Role', student.role || 'student']
+  ];
+
+  root.innerHTML = `
+    <div class="modal-backdrop is-open" role="presentation">
+      <section class="modal" role="dialog" aria-modal="true" aria-labelledby="student-modal-title">
+        <div class="modal-header">
+          <h2 id="student-modal-title">Student Details</h2>
+          <button class="modal-close" type="button" aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-content">
+          <dl class="modal-detail-grid">
+            ${detailRows.map(([label, value]) => `
+              <div>
+                <dt>${escapeHtml(label)}</dt>
+                <dd>${escapeHtml(value)}</dd>
+              </div>
+            `).join('')}
+          </dl>
+          <div class="card-actions">
+            <button class="button button-secondary modal-close" type="button">Close</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  `;
+
+  bindModalClose(root.querySelector('.modal-backdrop'));
+}
+
+function removeRegisteredUserById(targetValue) {
+  const users = getRegisteredUsers();
+  const normalized = String(targetValue || '').trim();
+  const remaining = users.filter((user) => {
+    const compareValue = String(user.registerNumber || user.registerNo || user.email || '').trim();
+    return compareValue.toLowerCase() !== normalized.toLowerCase();
+  });
+
+  saveRegisteredUsers(remaining);
+
+  const currentUser = getCurrentUser();
+  if (currentUser && String(currentUser.registerNumber || currentUser.email || '').trim().toLowerCase() === normalized.toLowerCase()) {
+    clearSession();
+    return true;
+  }
+
+  return remaining.length !== users.length;
+}
+
+function initializeFacultyRoster() {
+  const tableBody = document.getElementById('authorized-students-body');
+  const searchInput = document.getElementById('roster-search');
+  const departmentFilter = document.getElementById('roster-department');
+  const yearFilter = document.getElementById('roster-year');
+  const sectionFilter = document.getElementById('roster-section');
+  const countLabel = document.getElementById('roster-count-label');
+  const refreshButton = document.getElementById('refresh-roster-button');
+
+  if (!tableBody) return;
+
+  const refreshDepartmentOptions = () => {
+    const students = getAuthorizedStudents();
+    const departments = [...new Set(students.map((student) => student.department))].sort();
+    if (!departmentFilter) return;
+
+    const currentValue = departmentFilter.value || 'all';
+    departmentFilter.innerHTML = '<option value="all">Department</option>' + departments.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join('');
+    if (departments.includes(currentValue)) departmentFilter.value = currentValue;
+    else departmentFilter.value = 'all';
+  };
+
+  const renderRows = () => {
+    const students = getAuthorizedStudents();
+    const query = (searchInput?.value || '').trim().toLowerCase();
+    const department = departmentFilter?.value || 'all';
+    const year = yearFilter?.value || 'all';
+    const section = sectionFilter?.value || 'all';
+
+    const filtered = students.filter((student) => {
+      const matchesQuery = !query || student.name.toLowerCase().includes(query) || student.registerNo.toLowerCase().includes(query) || student.email.toLowerCase().includes(query);
+      const matchesDepartment = department === 'all' || student.department === department;
+      const matchesYear = year === 'all' || student.year === year;
+      const matchesSection = section === 'all' || student.section === section;
+      return matchesQuery && matchesDepartment && matchesYear && matchesSection;
+    });
+
+    tableBody.innerHTML = filtered.map((student) => `
+      <tr>
+        <td>${escapeHtml(student.registerNo)}</td>
+        <td><span class="roster-avatar">${escapeHtml(String(student.name).split(' ').map((part) => part[0]).slice(0, 2).join('').toLowerCase())}</span>${escapeHtml(student.name)}</td>
+        <td>${escapeHtml(student.department)}</td>
+        <td>${escapeHtml(student.year)}</td>
+        <td>${escapeHtml(student.section)}</td>
+        <td>${escapeHtml(student.email)}</td>
+        <td><span class="status-pill status-active">● Active</span></td>
+        <td>
+          <div class="roster-actions">
+            <button type="button" class="roster-action-button view-button" data-register="${escapeHtml(student.registerNo)}">View</button>
+            <button type="button" class="roster-action-button remove-button" data-register="${escapeHtml(student.registerNo)}">Remove</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+
+    tableBody.querySelectorAll('.view-button').forEach((button) => {
+      button.addEventListener('click', () => {
+        const targetId = button.dataset.register || '';
+        const student = getAuthorizedStudents().find((item) => String(item.registerNo).toLowerCase() === String(targetId).toLowerCase());
+        if (student) openStudentDetailModal(student);
+      });
+    });
+
+    tableBody.querySelectorAll('.remove-button').forEach((button) => {
+      button.addEventListener('click', () => {
+        const targetId = button.dataset.register || '';
+        const removed = removeRegisteredUserById(targetId);
+        if (removed) {
+          renderRows();
+          refreshDepartmentOptions();
+          showToast('Account removed successfully.');
+        } else {
+          showToast('No saved account found to remove.');
+        }
+      });
+    });
+
+    if (countLabel) {
+      countLabel.textContent = `AUTHORIZED STUDENTS: ${filtered.length}`;
+    }
+  };
+
+  refreshDepartmentOptions();
+
+  [searchInput, departmentFilter, yearFilter, sectionFilter].forEach((control) => {
+    if (control) control.addEventListener('input', renderRows);
+    if (control) control.addEventListener('change', renderRows);
+  });
+
+  refreshButton?.addEventListener('click', () => {
+    if (searchInput) searchInput.value = '';
+    if (departmentFilter) departmentFilter.value = 'all';
+    if (yearFilter) yearFilter.value = 'all';
+    if (sectionFilter) sectionFilter.value = 'all';
+    refreshDepartmentOptions();
+    renderRows();
+    showToast('Authorized roster refreshed.');
+  });
+
+  renderRows();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initializeNavigation();
   initializeLogoFallback();
   initializeSessionActions();
   initializeLogin();
+  initializeAuthUI();
   initializeDashboard();
   initializeStorage();
+  renderUserSummary();
   initializeHomeDepartment();
   initializeResourceSearch();
   initializeDirectoryFilters('facility');
   initializeDirectoryFilters('equipment');
   initializeExpertiseDirectory();
   initializeDepartments();
+  initializeFacultyRoster();
 });

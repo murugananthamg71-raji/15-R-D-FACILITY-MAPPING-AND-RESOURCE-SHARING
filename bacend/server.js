@@ -6,7 +6,21 @@ const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
 const app = express();
 const port = Number(process.env.PORT || 5000);
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:8000' }));
+const allowedOrigins = [
+  process.env.CORS_ORIGIN,
+  'http://localhost:8000',
+  'https://rd-resource-sharing-portal.netlify.app'
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error('Not allowed by CORS'));
+  }
+}));
 app.use(express.json({ limit: '1mb' }));
 app.get('/api/health', async (req, res, next) => { try { await pool.query('SELECT 1'); res.json({ success: true, message: "R&D Resource Portal API is running" }); } catch (error) { next(Object.assign(new Error('Database connection unavailable'), { status: 503, cause: error })); } });
 app.use('/api/auth', require('./routes/authRoutes'));
