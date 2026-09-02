@@ -2,6 +2,12 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../config/database');
 
+function normalizeRole(role) {
+  const value = String(role || '').trim().toLowerCase();
+  if (value === 'technician') return 'lab_technician';
+  return value;
+}
+
 function publicUser(row) {
   return { id: row.id, name: row.name, email: row.email, role: row.role, department: row.department_code ? { id: row.department_id, code: row.department_code, name: row.department_name } : null };
 }
@@ -10,17 +16,19 @@ const userSelect = `SELECT u.id, u.name, u.email, u.role, u.department_id, d.cod
 
 async function register(req, res) {
   const { name, email, password, role = 'student', departmentCode } = req.body;
+  const normalizedRole = normalizeRole(role);
   if (!name || !email || !password || password.length < 6) return res.status(400).json({ success: false, message: 'Name, valid email, and password of at least 6 characters are required' });
-  if (!['student', 'faculty', 'admin'].includes(role)) return res.status(400).json({ success: false, message: 'Invalid role' });
+  if (!['student', 'faculty', 'lab_technician', 'admin'].includes(normalizedRole)) return res.status(400).json({ success: false, message: 'Invalid role' });
   const hash = await bcrypt.hash(password, 12);
-  const result = await pool.query(`INSERT INTO users (name, email, password_hash, role, department_id) VALUES ($1, $2, $3, $4, (SELECT id FROM departments WHERE code = $5)) RETURNING id`, [name.trim(), email.toLowerCase().trim(), hash, role, departmentCode || null]);
+  const result = await pool.query(`INSERT INTO users (name, email, password_hash, role, department_id) VALUES ($1, $2, $3, $4, (SELECT id FROM departments WHERE code = $5)) RETURNING id`, [name.trim(), email.toLowerCase().trim(), hash, normalizedRole, departmentCode || null]);
   const user = await pool.query(`${userSelect} WHERE u.id = $1`, [result.rows[0].id]);
   res.status(201).json({ success: true, data: { user: publicUser(user.rows[0]), token: tokenFor(user.rows[0]) } });
 }
 async function login(req, res) {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
+  const normalizedRole = normalizeRole(role);
   if (!email || !password) return res.status(400).json({ success: false, message: 'Email and password are required' });
-  const result = await pool.query(`${userSelect} WHERE LOWER(u.email) = LOWER($1)`, [email.trim()]);
+  const result = await pool.query(`${userSelect} WHERE LOWER(u.email) = LOWER($1)${normalizedRole ? ' AND u.role = $2' : ''}`, normalizedRole ? [email.trim(), normalizedRole] : [email.trim()]);
   if (!result.rowCount || !(await bcrypt.compare(password, result.rows[0].password_hash))) return res.status(401).json({ success: false, message: 'Invalid email or password' });
   res.json({ success: true, data: { user: publicUser(result.rows[0]), token: tokenFor(result.rows[0]) } });
 }

@@ -9,6 +9,7 @@ ON CONFLICT (code) DO NOTHING;
 INSERT INTO users (name,email,password_hash,role,department_id) VALUES
 ('Demo Student','student@college.edu','$2b$12$0p7H1wrIzFwvIdYzrlozreNqShv7AYRt7DceZ2MjiClVc2vRdAbTW','student',(SELECT id FROM departments WHERE code='CSE')),
 ('Demo Faculty','faculty@college.edu','$2b$12$0p7H1wrIzFwvIdYzrlozreNqShv7AYRt7DceZ2MjiClVc2vRdAbTW','faculty',(SELECT id FROM departments WHERE code='CSE')),
+('Lab Technician','lab.technician@college.edu','$2b$12$0p7H1wrIzFwvIdYzrlozreNqShv7AYRt7DceZ2MjiClVc2vRdAbTW','lab_technician',(SELECT id FROM departments WHERE code='IT')),
 ('Portal Administrator','admin@college.edu','$2b$12$0p7H1wrIzFwvIdYzrlozreNqShv7AYRt7DceZ2MjiClVc2vRdAbTW','admin',(SELECT id FROM departments WHERE code='IT'))
 ON CONFLICT (email) DO NOTHING;
 

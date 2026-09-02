@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
   name VARCHAR(150) NOT NULL,
   email VARCHAR(255) NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
-  role VARCHAR(20) NOT NULL CHECK (role IN ('student', 'faculty', 'admin')),
+  role VARCHAR(20) NOT NULL CHECK (role IN ('student', 'faculty', 'lab_technician', 'admin')),
   department_id INTEGER REFERENCES departments(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

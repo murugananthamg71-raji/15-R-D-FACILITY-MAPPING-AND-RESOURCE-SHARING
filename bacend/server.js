@@ -24,6 +24,7 @@ app.use(cors({
 app.use(express.json({ limit: '1mb' }));
 app.get('/api/health', async (req, res, next) => { try { await pool.query('SELECT 1'); res.json({ success: true, message: "R&D Resource Portal API is running" }); } catch (error) { next(Object.assign(new Error('Database connection unavailable'), { status: 503, cause: error })); } });
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/students', require('./routes/studentRoutes'));
 app.use('/api/departments', require('./routes/departmentRoutes'));
 app.use('/api/facilities', require('./routes/facilityRoutes'));
 app.use('/api/equipment', require('./routes/equipmentRoutes'));

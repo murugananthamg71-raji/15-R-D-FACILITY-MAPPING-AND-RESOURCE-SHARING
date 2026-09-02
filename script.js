@@ -2,11 +2,16 @@
 const STORAGE = { resources: 'rdp_resources', requests: 'rdp_requests', user: 'rdp_current_user', registeredUsers: 'rdp_registered_users' };
 const isNetlifyHost = typeof window !== 'undefined' && window.location.hostname.includes('netlify.app');
 const API_BASE = isNetlifyHost ? 'https://rd-resource-sharing-portal.netlify.app/api' : 'http://localhost:5001/api';
+const normalizeRole = (value) => {
+  const role = String(value || '').trim().toLowerCase();
+  if (role === 'technician' || role === 'lab_technician') return 'lab_technician';
+  return role;
+};
 const demoLoginAccounts = [
   { login: '721224idat17', password: '123456', name: 'Demo Student', email: 'student@college.edu', role: 'student', department: 'CSE', registerNumber: '721224idat17' },
   { login: 'faculty123', password: '123456', name: 'Demo Faculty', email: 'faculty@college.edu', role: 'faculty', department: 'IT', registerNumber: 'faculty123' },
   { login: 'labadmin123', password: '123456', name: 'Lab Admin', email: 'admin@college.edu', role: 'admin', department: 'IT', registerNumber: 'labadmin123' },
-  { login: 'tech123', password: '123456', name: 'Lab Technician', email: 'tech@college.edu', role: 'technician', department: 'IT', registerNumber: 'tech123' }
+  { login: 'tech123', password: '123456', name: 'Lab Technician', email: 'lab.technician@college.edu', role: 'lab_technician', department: 'IT', registerNumber: 'tech123' }
 ];
 
 async function apiFetch(path, options = {}) {
@@ -33,11 +38,11 @@ function saveRegisteredUsers(users) {
 function findLocalUser(loginValue, passwordValue, selectedRole = null) {
   const normalizedLogin = String(loginValue || '').trim().toLowerCase();
   const normalizedPassword = String(passwordValue || '');
-  const normalizedRole = selectedRole ? String(selectedRole).trim().toLowerCase() : null;
+  const normalizedRole = selectedRole ? normalizeRole(selectedRole) : null;
 
   const fromCustomUsers = getRegisteredUsers().find((user) => {
     const sameLogin = [user.email, user.registerNumber].some((field) => String(field || '').trim().toLowerCase() === normalizedLogin);
-    const matchingRole = !normalizedRole || String(user.role || '').trim().toLowerCase() === normalizedRole;
+    const matchingRole = !normalizedRole || normalizeRole(user.role) === normalizedRole;
     return sameLogin && matchingRole && String(user.password || '') === normalizedPassword;
   });
 
@@ -45,7 +50,7 @@ function findLocalUser(loginValue, passwordValue, selectedRole = null) {
     return {
       name: fromCustomUsers.name,
       email: fromCustomUsers.email,
-      role: fromCustomUsers.role,
+      role: normalizeRole(fromCustomUsers.role),
       department: fromCustomUsers.department,
       registerNumber: fromCustomUsers.registerNumber
     };
@@ -53,7 +58,7 @@ function findLocalUser(loginValue, passwordValue, selectedRole = null) {
 
   return demoLoginAccounts.find((user) => {
     const sameLogin = user.login === normalizedLogin || user.email === normalizedLogin || user.registerNumber === normalizedLogin;
-    const matchingRole = !normalizedRole || String(user.role || '').trim().toLowerCase() === normalizedRole;
+    const matchingRole = !normalizedRole || normalizeRole(user.role) === normalizedRole;
     return sameLogin && matchingRole && user.password === normalizedPassword;
   }) || null;
 }
@@ -362,20 +367,48 @@ function renderDashboardStats(stats) {
 function initializeDashboard() {
   const cards = document.getElementById('dashboard-cards');
   if (!cards) return;
+
+  const currentUser = getCurrentUser();
+  const subtitle = document.getElementById('dashboard-subtitle');
+  const role = normalizeRole(currentUser?.role || 'student');
+  const rosterPanel = document.querySelector('.faculty-roster-panel');
+  if (rosterPanel) rosterPanel.style.display = role === 'faculty' || role === 'lab_technician' ? 'block' : 'none';
+
   const localStats = {
     departments: departments.length,
     facilities: resources.filter((resource) => resource.type === 'Facility').length,
     equipment: resources.filter((resource) => resource.type === 'Equipment').length,
     experts: expertise.length,
-    pendingRequests: getRequests().filter((request) => request.status === 'Pending').length
+    pendingRequests: getRequests().filter((request) => request.status === 'Pending').length,
+    myRequests: getRequests().filter((request) => request.userEmail === currentUser?.email).length
   };
-  const currentUser = getCurrentUser();
-  const subtitle = document.getElementById('dashboard-subtitle');
+
   if (currentUser && subtitle) {
     subtitle.textContent = `Welcome back, ${currentUser.name || currentUser.email || 'researcher'}.`;
   }
+
   renderDashboardStats(localStats);
-  apiFetch('/dashboard/stats').then(renderDashboardStats).catch(() => {});
+
+  if (!currentUser) return;
+
+  const endpoint = role === 'faculty' ? '/dashboard/faculty' : role === 'lab_technician' ? '/dashboard/lab-technician' : '/dashboard/stats';
+
+  apiFetch(endpoint)
+    .then((payload) => {
+      const data = payload?.stats || payload?.data || payload || {};
+      const sanitized = {
+        departments: Number(data.departments ?? departments.length),
+        facilities: Number(data.facilities ?? resources.filter((resource) => resource.type === 'Facility').length),
+        equipment: Number(data.equipment ?? resources.filter((resource) => resource.type === 'Equipment').length),
+        experts: Number(data.experts ?? expertise.length),
+        pendingRequests: Number(data.pendingRequests ?? getRequests().filter((request) => request.status === 'Pending').length),
+        myRequests: Number(data.myRequests ?? getRequests().filter((request) => request.userEmail === currentUser?.email).length),
+      };
+      renderDashboardStats(sanitized);
+    })
+    .catch(() => {
+      renderDashboardStats(localStats);
+    });
 }
 function populateDepartmentSelect(select, placeholder = 'All Departments') {
   if (!select) return;
