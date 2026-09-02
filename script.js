@@ -1,18 +1,12 @@
 /* R&D Portal frontend demo: all data is local and intentionally non-secure. */
-const STORAGE = { resources: 'rdp_resources', requests: 'rdp_requests', user: 'rdp_current_user', registeredUsers: 'rdp_registered_users' };
+const STORAGE = { resources: 'rdp_resources', requests: 'rdp_requests', user: 'rdp_current_user' };
 const isNetlifyHost = typeof window !== 'undefined' && window.location.hostname.includes('netlify.app');
-const API_BASE = isNetlifyHost ? 'https://rd-resource-sharing-portal.netlify.app/api' : 'http://localhost:5001/api';
+const API_BASE = typeof window !== 'undefined' && window.__RDP_API_BASE__ ? window.__RDP_API_BASE__ : isNetlifyHost ? '' : 'http://localhost:5001/api';
 const normalizeRole = (value) => {
   const role = String(value || '').trim().toLowerCase();
   if (role === 'technician' || role === 'lab_technician') return 'lab_technician';
   return role;
 };
-const demoLoginAccounts = [
-  { login: '721224idat17', password: '123456', name: 'Demo Student', email: 'student@college.edu', role: 'student', department: 'CSE', registerNumber: '721224idat17' },
-  { login: 'faculty123', password: '123456', name: 'Demo Faculty', email: 'faculty@college.edu', role: 'faculty', department: 'IT', registerNumber: 'faculty123' },
-  { login: 'labadmin123', password: '123456', name: 'Lab Admin', email: 'admin@college.edu', role: 'admin', department: 'IT', registerNumber: 'labadmin123' },
-  { login: 'tech123', password: '123456', name: 'Lab Technician', email: 'lab.technician@college.edu', role: 'lab_technician', department: 'IT', registerNumber: 'tech123' }
-];
 
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem('rdp_token');
@@ -21,46 +15,6 @@ async function apiFetch(path, options = {}) {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(payload.message || `API request failed with ${response.status}`);
   return payload.data;
-}
-
-function getRegisteredUsers() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE.registeredUsers) || '[]');
-  } catch (error) {
-    return [];
-  }
-}
-
-function saveRegisteredUsers(users) {
-  localStorage.setItem(STORAGE.registeredUsers, JSON.stringify(users));
-}
-
-function findLocalUser(loginValue, passwordValue, selectedRole = null) {
-  const normalizedLogin = String(loginValue || '').trim().toLowerCase();
-  const normalizedPassword = String(passwordValue || '');
-  const normalizedRole = selectedRole ? normalizeRole(selectedRole) : null;
-
-  const fromCustomUsers = getRegisteredUsers().find((user) => {
-    const sameLogin = [user.email, user.registerNumber].some((field) => String(field || '').trim().toLowerCase() === normalizedLogin);
-    const matchingRole = !normalizedRole || normalizeRole(user.role) === normalizedRole;
-    return sameLogin && matchingRole && String(user.password || '') === normalizedPassword;
-  });
-
-  if (fromCustomUsers) {
-    return {
-      name: fromCustomUsers.name,
-      email: fromCustomUsers.email,
-      role: normalizeRole(fromCustomUsers.role),
-      department: fromCustomUsers.department,
-      registerNumber: fromCustomUsers.registerNumber
-    };
-  }
-
-  return demoLoginAccounts.find((user) => {
-    const sameLogin = user.login === normalizedLogin || user.email === normalizedLogin || user.registerNumber === normalizedLogin;
-    const matchingRole = !normalizedRole || normalizeRole(user.role) === normalizedRole;
-    return sameLogin && matchingRole && user.password === normalizedPassword;
-  }) || null;
 }
 
 // Data initialization and LocalStorage
@@ -158,20 +112,6 @@ function initializeLogin() {
     const passwordValue = form.elements['login-password'].value;
     const roleValue = String(form.elements['login-role']?.value || '').trim().toLowerCase();
 
-    const localUser = findLocalUser(loginValue, passwordValue, roleValue);
-    if (localUser) {
-      localStorage.setItem(STORAGE.user, JSON.stringify({
-        name: localUser.name,
-        email: localUser.email,
-        role: localUser.role,
-        department: localUser.department,
-        registerNumber: localUser.registerNumber
-      }));
-      localStorage.setItem('rdp_token', `demo-token-${localUser.role}`);
-      window.location.href = 'dashboard.html';
-      return;
-    }
-
     try {
       const data = await apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email: loginValue, password: passwordValue, role: roleValue }) });
       localStorage.setItem(STORAGE.user, JSON.stringify(data.user));
@@ -261,7 +201,7 @@ function initializeAuthUI() {
       });
     }
 
-    registerForm.addEventListener('submit', (event) => {
+    registerForm.addEventListener('submit', async (event) => {
       event.preventDefault();
 
       const formData = new FormData(registerForm);
@@ -287,37 +227,19 @@ function initializeAuthUI() {
         return;
       }
 
-      const users = getRegisteredUsers();
-      const existing = users.find((user) => user.email === email || user.registerNumber === registerNumber);
-      if (existing) {
-        showToast('Account already exists. Please sign in.');
+      try {
+        const departmentCode = departments.find((item) => item.name === department)?.shortName || department;
+        const data = await apiFetch('/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({ name, email, password, role: accountRole, departmentCode })
+        });
         registerForm.reset();
-        setMode('login');
-        return;
+        localStorage.setItem(STORAGE.user, JSON.stringify(data.user));
+        localStorage.setItem('rdp_token', data.token);
+        window.location.href = 'dashboard.html';
+      } catch (error) {
+        showToast(error.message || 'Account creation failed.');
       }
-
-      const newUser = {
-        id: Date.now(),
-        name,
-        registerNumber,
-        email,
-        phone,
-        department,
-        program,
-        year,
-        section,
-        password,
-        role: accountRole,
-        createdAt: new Date().toISOString()
-      };
-
-      users.push(newUser);
-      saveRegisteredUsers(users);
-      registerForm.reset();
-      showToast('Account created successfully. Please sign in.');
-      const loginInput = document.getElementById('login-email');
-      if (loginInput) loginInput.value = registerNumber;
-      setMode('login');
     });
   }
 
@@ -673,26 +595,6 @@ const defaultFacultyStudents = [
   { registerNo: '721224ecbd61', name: 'Rangnaya G', department: 'Electronics and Communication Engineering', year: '3rd Year', section: 'A', email: '24ecbd61@karpagamtech.ac.in', active: true }
 ];
 
-function getAuthorizedStudents() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('rdp_registered_users') || '[]');
-    if (Array.isArray(saved) && saved.length) {
-      return saved.map((user) => ({
-        registerNo: String(user.registerNumber || user.registerNo || 'N/A'),
-        name: String(user.name || 'Student'),
-        department: String(user.department || 'Department'),
-        year: String(user.year || 'Not specified'),
-        section: String(user.section || 'A'),
-        email: String(user.email || 'student@college.edu'),
-        active: true
-      }));
-    }
-  } catch (error) {
-    return defaultFacultyStudents;
-  }
-  return defaultFacultyStudents;
-}
-
 function openStudentDetailModal(student) {
   const root = document.getElementById('modal-root');
   if (!root) return;
@@ -735,22 +637,7 @@ function openStudentDetailModal(student) {
 }
 
 function removeRegisteredUserById(targetValue) {
-  const users = getRegisteredUsers();
-  const normalized = String(targetValue || '').trim();
-  const remaining = users.filter((user) => {
-    const compareValue = String(user.registerNumber || user.registerNo || user.email || '').trim();
-    return compareValue.toLowerCase() !== normalized.toLowerCase();
-  });
-
-  saveRegisteredUsers(remaining);
-
-  const currentUser = getCurrentUser();
-  if (currentUser && String(currentUser.registerNumber || currentUser.email || '').trim().toLowerCase() === normalized.toLowerCase()) {
-    clearSession();
-    return true;
-  }
-
-  return remaining.length !== users.length;
+  return false;
 }
 
 function initializeFacultyRoster() {
@@ -763,6 +650,9 @@ function initializeFacultyRoster() {
   const refreshButton = document.getElementById('refresh-roster-button');
 
   if (!tableBody) return;
+
+  let authorizedStudents = defaultFacultyStudents;
+  const getAuthorizedStudents = () => authorizedStudents;
 
   const refreshDepartmentOptions = () => {
     const students = getAuthorizedStudents();
@@ -853,6 +743,21 @@ function initializeFacultyRoster() {
   });
 
   renderRows();
+  apiFetch('/students')
+    .then((students) => {
+      authorizedStudents = (students || []).map((student) => ({
+        registerNo: String(student.registerNumber || student.registerNo || student.email || 'N/A'),
+        name: String(student.name || 'Student'),
+        department: String(student.department?.name || student.department?.code || 'Department'),
+        year: String(student.year || 'Not specified'),
+        section: String(student.section || 'A'),
+        email: String(student.email || 'student@college.edu'),
+        active: true
+      }));
+      refreshDepartmentOptions();
+      renderRows();
+    })
+    .catch(() => {});
 }
 
 document.addEventListener('DOMContentLoaded', () => {

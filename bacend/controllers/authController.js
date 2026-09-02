@@ -17,12 +17,17 @@ const userSelect = `SELECT u.id, u.name, u.email, u.role, u.department_id, d.cod
 async function register(req, res) {
   const { name, email, password, role = 'student', departmentCode } = req.body;
   const normalizedRole = normalizeRole(role);
-  if (!name || !email || !password || password.length < 6) return res.status(400).json({ success: false, message: 'Name, valid email, and password of at least 6 characters are required' });
-  if (!['student', 'faculty', 'lab_technician', 'admin'].includes(normalizedRole)) return res.status(400).json({ success: false, message: 'Invalid role' });
+  if (!name || !/^\S+@\S+\.\S+$/.test(String(email).trim()) || !password || password.length < 6) return res.status(400).json({ success: false, message: 'Name, valid email, and password of at least 6 characters are required' });
+  if (!['student', 'faculty', 'lab_technician'].includes(normalizedRole)) return res.status(400).json({ success: false, message: 'Public registration is limited to student, faculty, and lab technician accounts' });
   const hash = await bcrypt.hash(password, 12);
-  const result = await pool.query(`INSERT INTO users (name, email, password_hash, role, department_id) VALUES ($1, $2, $3, $4, (SELECT id FROM departments WHERE code = $5)) RETURNING id`, [name.trim(), email.toLowerCase().trim(), hash, normalizedRole, departmentCode || null]);
-  const user = await pool.query(`${userSelect} WHERE u.id = $1`, [result.rows[0].id]);
-  res.status(201).json({ success: true, data: { user: publicUser(user.rows[0]), token: tokenFor(user.rows[0]) } });
+  try {
+    const result = await pool.query(`INSERT INTO users (name, email, password_hash, role, department_id) VALUES ($1, $2, $3, $4, (SELECT id FROM departments WHERE code = $5)) RETURNING id`, [name.trim(), email.toLowerCase().trim(), hash, normalizedRole, departmentCode || null]);
+    const user = await pool.query(`${userSelect} WHERE u.id = $1`, [result.rows[0].id]);
+    res.status(201).json({ success: true, data: { user: publicUser(user.rows[0]), token: tokenFor(user.rows[0]) } });
+  } catch (error) {
+    if (error.code === '23505') return res.status(409).json({ success: false, message: 'An account with this email already exists' });
+    throw error;
+  }
 }
 async function login(req, res) {
   const { email, password, role } = req.body;

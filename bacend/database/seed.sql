@@ -3,7 +3,8 @@ INSERT INTO departments (name, code, description) VALUES
 ('Computer Science and Engineering','CSE','Software systems, data science, and intelligent computing.'),
 ('Electronics and Communication Engineering','ECE','Embedded systems, VLSI, and communication technology.'),
 ('Electrical and Electronics Engineering','EEE','Power electronics, automation, and renewable energy.'),
-('Mechanical Engineering','MECH','CAD/CAM, manufacturing, and robotics and automation.')
+('Mechanical Engineering','MECH','CAD/CAM, manufacturing, and robotics and automation.'),
+('Artificial Intelligence and Data Science','AIDS','Artificial intelligence, machine learning, and data science.')
 ON CONFLICT (code) DO NOTHING;
 
 INSERT INTO users (name,email,password_hash,role,department_id) VALUES
