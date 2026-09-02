@@ -202,6 +202,16 @@ function initializeAuthUI() {
     if (loginRole) loginRole.value = selectedRole;
   };
 
+  const syncRegisterRole = () => {
+    const registerRole = document.getElementById('register-role');
+    const registerButton = document.querySelector('.register-button');
+    if (registerRole) registerRole.value = selectedRole === 'admin' ? 'student' : selectedRole;
+    if (registerButton) {
+      const roleLabel = selectedRole === 'lab_technician' ? 'Lab Technician' : selectedRole === 'faculty' ? 'Faculty' : 'Student';
+      registerButton.firstChild.textContent = `Register ${roleLabel} Account `;
+    }
+  };
+
   const setMode = (mode) => {
     tabs.forEach((tab) => {
       const active = tab.dataset.authRole === selectedRole;
@@ -214,6 +224,7 @@ function initializeAuthUI() {
     });
 
     syncLoginRole();
+    syncRegisterRole();
 
     if (portalTitle) {
       portalTitle.textContent = mode === 'register' ? 'Create your account' : 'Sign in to your portal';
@@ -241,6 +252,15 @@ function initializeAuthUI() {
   }
 
   if (registerForm) {
+    const registerRole = document.getElementById('register-role');
+    if (registerRole) {
+      registerRole.addEventListener('change', () => {
+        selectedRole = normalizeRole(registerRole.value);
+        syncLoginRole();
+        syncRegisterRole();
+      });
+    }
+
     registerForm.addEventListener('submit', (event) => {
       event.preventDefault();
 
@@ -255,8 +275,9 @@ function initializeAuthUI() {
       const section = String(formData.get('register-section') || '').trim();
       const password = String(formData.get('register-password') || '');
       const confirmPassword = String(formData.get('register-confirm-password') || '');
+      const accountRole = normalizeRole(formData.get('register-role') || selectedRole);
 
-      if (!name || !registerNumber || !email || !phone || !department || !program || !year || !section || !password || !confirmPassword) {
+      if (!name || !registerNumber || !email || !phone || !department || !program || !year || !section || !password || !confirmPassword || !['student', 'faculty', 'lab_technician'].includes(accountRole)) {
         showToast('Please complete all fields');
         return;
       }
@@ -286,7 +307,7 @@ function initializeAuthUI() {
         year,
         section,
         password,
-        role: selectedRole,
+        role: accountRole,
         createdAt: new Date().toISOString()
       };
 

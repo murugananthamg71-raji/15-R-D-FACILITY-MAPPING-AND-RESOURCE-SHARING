@@ -93,6 +93,18 @@
         </form>
 
         <form class="auth-form" id="register-form" novalidate>
+          <div class="field-group">
+            <label class="auth-label" for="register-role">Account Type</label>
+            <div class="input-shell select-shell">
+              <span class="input-icon">▣</span>
+              <select id="register-role" name="register-role" required>
+                <option value="student">Student / Researcher</option>
+                <option value="faculty">Faculty</option>
+                <option value="lab_technician">Lab Technician</option>
+              </select>
+            </div>
+          </div>
+
           <div class="field-grid two-column">
             <div class="field-group">
               <label class="auth-label" for="register-name">Full Name</label>
